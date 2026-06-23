@@ -57,9 +57,15 @@ function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
-    checkUsersExist().then((res) => {
-      setMode(res.exists ? "sign-in" : "setup")
-    })
+    checkUsersExist()
+      .then((res) => {
+        setMode(res.exists ? "sign-in" : "setup")
+      })
+      .catch((err) => {
+        console.error("checkUsersExist failed:", err)
+        setError(err instanceof Error ? err.message : String(err))
+        setMode("sign-in")
+      })
   }, [])
 
   useEffect(() => {
