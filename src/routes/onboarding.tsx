@@ -1,21 +1,22 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useState, useEffect } from "react"
-import { authClient } from "@/lib/auth-client"
-import { getBackendConfig, submitOnboarding } from "@/lib/scrawn-server"
-import { Button } from "@/components/ui/button"
-import { motion, AnimatePresence } from "framer-motion"
 import {
-  Eye,
-  EyeOff,
-  Lock,
-  Key,
-  Coins,
-  Globe,
-  ShieldAlert,
   ArrowLeft,
   ArrowRight,
+  Coins,
+  Eye,
+  EyeOff,
   Folder,
+  Globe,
+  Key,
+  Lock,
+  ShieldAlert,
 } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useEffect, useState } from "react"
+import { getBackendConfig, submitOnboarding } from "@/lib/scrawn-server"
+import { Button } from "@/components/ui/button"
+
+import { authClient } from "@/lib/auth-client"
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -163,8 +164,6 @@ function Onboarding() {
       return
     }
 
-    // Wait for the backend to confirm config before navigating
-    // Prevents a race where the dashboard mounts before the DB write propagates
     for (let i = 0; i < 10; i++) {
       const config = await getBackendConfig()
       if (config.configured) {

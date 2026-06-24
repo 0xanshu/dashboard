@@ -9,4 +9,5 @@ export const auth = betterAuth({
     enabled: true,
   },
   plugins: [tanstackStartCookies()],
+  baseURL: "http://localhost:3000",
 })

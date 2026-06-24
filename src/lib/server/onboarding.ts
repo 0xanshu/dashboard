@@ -4,15 +4,16 @@ import { db } from "../db"
 import { eq } from "drizzle-orm"
 import { org, project } from "@/db/schema"
 import { randomUUID } from "crypto"
+import { getRequest } from "@tanstack/react-start/server"
+import { auth } from "../auth"
 
 const SCRAWN_HTTP_URL = process.env.SCRAWN_HTTP_URL || "http://localhost:8070"
-const SCRAWN_KEY = process.env.SCRAWN_KEY as string
 const MASTER_API_KEY = process.env.MASTER_API_KEY as string
 
 export const getBackendConfig = createServerFn({ method: "GET" }).handler(
   async () => {
     const res = await fetch(`${SCRAWN_HTTP_URL}/api/v1/internals/config`, {
-      headers: { Authorization: `Bearer ${SCRAWN_KEY}` },
+      headers: { Authorization: `Bearer ${MASTER_API_KEY}` },
     })
     if (!res.ok) return { configured: false }
     return res.json() as Promise<{
@@ -26,7 +27,6 @@ export const getBackendConfig = createServerFn({ method: "GET" }).handler(
 export const submitOnboarding = createServerFn({ method: "POST" })
   .inputValidator(
     validator<{
-      userId: string
       name: string
       dodoLiveApiKey: string
       dodoTestApiKey: string
@@ -37,8 +37,19 @@ export const submitOnboarding = createServerFn({ method: "POST" })
     }>()
   )
   .handler(async (ctx) => {
+    const request = getRequest()
+    const session = await auth.api.getSession({
+      headers: request?.headers,
+    })
+
+    if (!session) {
+      return { error: "Unauthorized" }
+    }
+
+    const userId = session.user.id
+
     let userOrg = await db.query.org.findFirst({
-      where: eq(org.userId, ctx.data.userId),
+      where: eq(org.userId, userId),
     })
 
     if (!userOrg) {
@@ -47,7 +58,7 @@ export const submitOnboarding = createServerFn({ method: "POST" })
         .insert(org)
         .values({
           orgId: newOrgId,
-          userId: ctx.data.userId,
+          userId: userId,
         })
         .returning()
       userOrg = newOrg
