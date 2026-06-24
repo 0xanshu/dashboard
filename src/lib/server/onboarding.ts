@@ -7,6 +7,7 @@ import { randomUUID } from "crypto"
 
 const SCRAWN_HTTP_URL = process.env.SCRAWN_HTTP_URL || "http://localhost:8070"
 const SCRAWN_KEY = process.env.SCRAWN_KEY as string
+const MASTER_API_KEY = process.env.MASTER_API_KEY as string
 
 export const getBackendConfig = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -26,7 +27,7 @@ export const submitOnboarding = createServerFn({ method: "POST" })
   .inputValidator(
     validator<{
       userId: string
-      masterAPIKey: string
+      name: string
       dodoLiveApiKey: string
       dodoTestApiKey: string
       dodoLiveProductId: string
@@ -55,7 +56,7 @@ export const submitOnboarding = createServerFn({ method: "POST" })
     const res = await fetch(`${SCRAWN_HTTP_URL}/api/v1/internals/onboarding`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${ctx.data.masterAPIKey}`,
+        Authorization: `Bearer ${MASTER_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ ...ctx.data }),
@@ -69,6 +70,10 @@ export const submitOnboarding = createServerFn({ method: "POST" })
     const data = await res.json().catch(() => ({}))
 
     const returnedProjectId = data.projectId
+
+    if (!returnedProjectId) {
+      return { error: "The project id is undefined" }
+    }
 
     await db.insert(project).values({
       projectId: returnedProjectId,

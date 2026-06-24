@@ -12,8 +12,9 @@ import {
   Coins,
   Globe,
   ShieldAlert,
-  ArrowRight,
   ArrowLeft,
+  ArrowRight,
+  Folder,
 } from "lucide-react"
 
 export const Route = createFileRoute("/onboarding")({
@@ -60,32 +61,37 @@ export const Route = createFileRoute("/onboarding")({
 
 const stepDetails = [
   {
-    tag: "// STEP 01 - PRODUCTION AUTH",
+    tag: "// STEP 01 - PROJECT SETUP",
+    title: "PROJECT NAME",
+    desc: "Choose a name for your Scrawn project. This is used to identify your project across the dashboard and API.",
+  },
+  {
+    tag: "// STEP 02 - PRODUCTION AUTH",
     title: "LIVE API KEY",
     desc: "Your DodoPayments Live API Key connects Scrawn to the production environment to authenticate secure billing and transaction operations.",
   },
   {
-    tag: "// STEP 02 - SANDBOX ENVIRONMENT",
+    tag: "// STEP 03 - SANDBOX ENVIRONMENT",
     title: "TEST API KEY",
     desc: "Your DodoPayments Test API Key is used to mock checkout states, run sandbox webhooks, and simulate user pricing upgrades during local development.",
   },
   {
-    tag: "// STEP 03 - SANDBOX PRODUCT",
+    tag: "// STEP 04 - SANDBOX PRODUCT",
     title: "TEST PRODUCT ID",
     desc: "The test-mode product identifier used for sandbox checkout sessions and development billing simulations.",
   },
   {
-    tag: "// STEP 04 - PRODUCTION PRODUCT",
+    tag: "// STEP 05 - PRODUCTION PRODUCT",
     title: "LIVE PRODUCT ID",
     desc: "The live-mode product identifier used for production checkout sessions and real billing operations.",
   },
   {
-    tag: "// STEP 05 - SETTLEMENT CONFIG",
+    tag: "// STEP 06 - SETTLEMENT CONFIG",
     title: "BASE CURRENCY",
     desc: "Select the default base currency. All system revenue analytics, metered logs, and usage graphs will process and display values in this currency.",
   },
   {
-    tag: "// STEP 06 - REDIRECT GATEWAY",
+    tag: "// STEP 07 - REDIRECT GATEWAY",
     title: "REDIRECT URL",
     desc: "The default endpoint URL where customers will be redirected back to after completing checkout or managing their subscriptions.",
   },
@@ -96,6 +102,7 @@ function Onboarding() {
   const { data: session, isPending } = authClient.useSession()
 
   const [step, setStep] = useState(0)
+  const [name, setName] = useState("")
   const [dodoLiveApiKey, setDodoLiveApiKey] = useState("")
   const [dodoTestApiKey, setDodoTestApiKey] = useState("")
   const [dodoLiveProductId, setDodoLiveProductId] = useState("")
@@ -126,14 +133,13 @@ function Onboarding() {
 
   function handleNext(e: React.FormEvent) {
     e.preventDefault()
-    if (step < 5) {
+    if (step < 6) {
       setStep(step + 1)
     } else {
       handleFinalSubmit()
     }
   }
 
-  const masterAPIKey = process.env.MASTER_API_KEY
   const userId = session.user.id
 
   async function handleFinalSubmit() {
@@ -142,7 +148,7 @@ function Onboarding() {
     const res = await submitOnboarding({
       data: {
         userId,
-        masterAPIKey,
+        name,
         dodoLiveApiKey,
         dodoTestApiKey,
         dodoLiveProductId,
@@ -242,12 +248,12 @@ function Onboarding() {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between font-mono text-[10px] font-black tracking-widest text-neutral-500 uppercase">
                   <span>Configuration Progress</span>
-                  <span>Step {step + 1} of 6</span>
+                  <span>Step {step + 1} of 7</span>
                 </div>
                 <div className="relative h-3 w-full overflow-hidden border-2 border-black bg-neutral-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-black dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
                   <motion.div
                     className="h-full border-r-2 border-black bg-[#ff00ff] dark:border-white"
-                    animate={{ width: `${((step + 1) / 6) * 100}%` }}
+                    animate={{ width: `${((step + 1) / 7) * 100}%` }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   />
                 </div>
@@ -259,6 +265,32 @@ function Onboarding() {
                   {step === 0 && (
                     <motion.div
                       key="step0"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex flex-col gap-1.5"
+                    >
+                      <label className="font-mono text-xs font-bold tracking-wider text-neutral-600 uppercase dark:text-neutral-400">
+                        Project Name
+                      </label>
+                      <div className="relative flex items-center">
+                        <Folder className="pointer-events-none absolute left-3 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="My Scrawn Project"
+                          required
+                          className="w-full border-2 border-black bg-white py-2.5 pr-4 pl-10 font-mono text-sm text-black transition-all outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:bg-yellow-50/10 dark:border-white dark:bg-black dark:text-white dark:focus:bg-zinc-950"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {step === 1 && (
+                    <motion.div
+                      key="step1"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -293,9 +325,9 @@ function Onboarding() {
                     </motion.div>
                   )}
 
-                  {step === 1 && (
+                  {step === 2 && (
                     <motion.div
-                      key="step1"
+                      key="step2"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -330,9 +362,9 @@ function Onboarding() {
                     </motion.div>
                   )}
 
-                  {step === 2 && (
+                  {step === 3 && (
                     <motion.div
-                      key="step2"
+                      key="step3"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -356,9 +388,9 @@ function Onboarding() {
                     </motion.div>
                   )}
 
-                  {step === 3 && (
+                  {step === 4 && (
                     <motion.div
-                      key="step3"
+                      key="step4"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -382,9 +414,9 @@ function Onboarding() {
                     </motion.div>
                   )}
 
-                  {step === 4 && (
+                  {step === 5 && (
                     <motion.div
-                      key="step4"
+                      key="step5"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -411,9 +443,9 @@ function Onboarding() {
                     </motion.div>
                   )}
 
-                  {step === 5 && (
+                  {step === 6 && (
                     <motion.div
-                      key="step5"
+                      key="step6"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -469,7 +501,7 @@ function Onboarding() {
                 >
                   {loading ? (
                     "Processing..."
-                  ) : step < 5 ? (
+                  ) : step < 6 ? (
                     <>
                       Continue <ArrowRight className="h-4 w-4" />
                     </>
