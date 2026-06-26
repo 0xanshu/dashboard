@@ -1,14 +1,17 @@
 import { createServerFn } from "@tanstack/react-start"
 import { apiGet, apiPost, apiDelete, validator } from "./core"
 
-export const listExpressions = createServerFn({ method: "GET" }).handler(
-  async () => apiGet("/api/v1/expressions")
-)
+export const listExpressions = createServerFn({ method: "GET" })
+  .inputValidator(validator<{ projectId: string }>())
+  .handler(async (ctx) => apiGet(ctx.data.projectId, "/api/v1/expressions"))
 
 export const createExpression = createServerFn({ method: "POST" })
-  .inputValidator(validator<{ key: string; expr: string }>())
-  .handler(async (ctx) => apiPost("/api/v1/expressions", ctx.data))
+  .inputValidator(validator<{ projectId: string; key: string; expr: string }>())
+  .handler(async (ctx) => {
+    const { projectId, ...payload } = ctx.data
+    return apiPost(projectId, "/api/v1/expressions", payload)
+  })
 
 export const deleteExpression = createServerFn({ method: "POST" })
-  .inputValidator(validator<{ key: string }>())
-  .handler(async (ctx) => apiDelete(`/api/v1/expressions/${ctx.data.key}`))
+  .inputValidator(validator<{ projectId: string; key: string }>())
+  .handler(async (ctx) => apiDelete(ctx.data.projectId, `/api/v1/expressions/${ctx.data.key}`))

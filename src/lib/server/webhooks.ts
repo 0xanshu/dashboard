@@ -3,7 +3,7 @@ import { apiGet, apiPost, validator } from "./core"
 
 export const listDeliveries = createServerFn({ method: "GET" })
   .inputValidator(
-    validator<{ apiKeyId?: string; eventType?: string; status?: string; role?: string; limit?: number; offset?: number }>()
+    validator<{ projectId: string; apiKeyId?: string; eventType?: string; status?: string; role?: string; limit?: number; offset?: number }>()
   )
   .handler(async (ctx) => {
     const params = new URLSearchParams()
@@ -13,17 +13,19 @@ export const listDeliveries = createServerFn({ method: "GET" })
     if (ctx.data.role) params.set("role", ctx.data.role)
     if (ctx.data.limit) params.set("limit", String(ctx.data.limit))
     if (ctx.data.offset) params.set("offset", String(ctx.data.offset))
-    return apiGet(`/api/v1/internals/webhook-deliveries?${params}`)
+    return apiGet(ctx.data.projectId, `/api/v1/internals/webhook-deliveries?${params}`)
   })
 
 export const sendTestWebhook = createServerFn({ method: "POST" })
-  .inputValidator(validator<{ apiKeyId: string }>())
-  .handler(async (ctx) =>
-    apiPost("/api/v1/internals/webhook-endpoint/send-test", ctx.data)
-  )
+  .inputValidator(validator<{ projectId: string; apiKeyId: string }>())
+  .handler(async (ctx) => {
+    const { projectId, ...payload } = ctx.data
+    return apiPost(projectId, "/api/v1/internals/webhook-endpoint/send-test", payload)
+  })
 
 export const setWebhookUrl = createServerFn({ method: "POST" })
-  .inputValidator(validator<{ apiKeyId: string; url: string }>())
-  .handler(async (ctx) =>
-    apiPost("/api/v1/internals/webhook-endpoint", ctx.data)
-  )
+  .inputValidator(validator<{ projectId: string; apiKeyId: string; url: string }>())
+  .handler(async (ctx) => {
+    const { projectId, ...payload } = ctx.data
+    return apiPost(projectId, "/api/v1/internals/webhook-endpoint", payload)
+  })

@@ -1,13 +1,16 @@
+import { getDashboardKey } from "./cache"
+
 const SCRAWN_HTTP_URL = process.env.SCRAWN_HTTP_URL || "http://localhost:8070"
-const SCRAWN_KEY = process.env.SCRAWN_KEY as string
 
 export function validator<T>(): { (): T; (value: unknown): T } {
   return ((input: unknown) => input as T) as { (): T; (value: unknown): T }
 }
 
-export async function apiGet(path: string) {
+export async function apiGet(projectId: string, path: string) {
+  const DASHBOARD_KEY = await getDashboardKey(projectId)
+
   const res = await fetch(`${SCRAWN_HTTP_URL}${path}`, {
-    headers: { Authorization: `Bearer ${SCRAWN_KEY}` },
+    headers: { Authorization: `Bearer ${DASHBOARD_KEY}` },
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
@@ -16,11 +19,12 @@ export async function apiGet(path: string) {
   return res.json()
 }
 
-export async function apiPost(path: string, body: unknown) {
+export async function apiPost(projectId: string, path: string, body: unknown) {
+  const DASHBOARD_KEY = await getDashboardKey(projectId)
   const res = await fetch(`${SCRAWN_HTTP_URL}${path}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${SCRAWN_KEY}`,
+      Authorization: `Bearer ${DASHBOARD_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -32,10 +36,11 @@ export async function apiPost(path: string, body: unknown) {
   return res.json()
 }
 
-export async function apiDelete(path: string) {
+export async function apiDelete(projectId: string, path: string) {
+  const DASHBOARD_KEY = await getDashboardKey(projectId)
   const res = await fetch(`${SCRAWN_HTTP_URL}${path}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${SCRAWN_KEY}` },
+    headers: { Authorization: `Bearer ${DASHBOARD_KEY}` },
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))

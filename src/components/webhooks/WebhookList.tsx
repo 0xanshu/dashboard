@@ -4,6 +4,8 @@ import { useCachedData } from "@/lib/useCache"
 import { Pagination } from "@/components/ui/pagination"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+import { useProject } from "@/lib/ProjectContext"
+
 interface WebhookListProps {
   apiKeyId?: string
   eventType?: string
@@ -24,10 +26,11 @@ export function WebhookList({
   title,
 }: WebhookListProps) {
   const [page, setPage] = useState(0)
+  const { activeProjectId } = useProject()
 
   const { data, loading, error } = useCachedData(
-    `webhooks-list:${apiKeyId ?? ""}:${eventType ?? ""}:${status ?? ""}:${role ?? ""}:${page}`,
-    () => listDeliveries({ data: { apiKeyId, eventType, status, role, limit: pageSize, offset: page * pageSize } }),
+    activeProjectId ? `webhooks-list:proj=${activeProjectId}:${apiKeyId ?? ""}:${eventType ?? ""}:${status ?? ""}:${role ?? ""}:${page}` : "webhooks-list",
+    async () => activeProjectId ? listDeliveries({ data: { projectId: activeProjectId, apiKeyId, eventType, status, role, limit: pageSize, offset: page * pageSize } }) : { deliveries: [] },
     30000
   )
 

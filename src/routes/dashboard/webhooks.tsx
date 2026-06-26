@@ -5,6 +5,7 @@ import { useCachedData, TTL } from "@/lib/useCache"
 import { useMode } from "@/lib/ModeContext"
 import { WebhookFilters, type WebhookFiltersValue } from "@/components/webhooks/WebhookFilters"
 import { Button } from "@/components/ui/button"
+import { useProject } from "@/lib/ProjectContext"
 
 export const Route = createFileRoute("/dashboard/webhooks")({
   head: () => ({
@@ -52,15 +53,21 @@ function WebhooksPage() {
 
   const roleParam = mode === "all" ? undefined : mode
 
-  const keys = useCachedData("webhooks-page-keys", listApiKeys, TTL.API_KEYS)
+  const { activeProjectId } = useProject()
+
+  const keys = useCachedData(
+    activeProjectId ? `webhooks-page-keys-${activeProjectId}` : "webhooks-page-keys",
+    async () => activeProjectId ? listApiKeys({ data: { projectId: activeProjectId } }) : { keys: [] },
+    TTL.API_KEYS
+  )
   const allTypes = useCachedData(
-    "webhooks-event-types",
-    () => listDeliveries({ data: { limit: 100 } }),
+    activeProjectId ? `webhooks-event-types-${activeProjectId}` : "webhooks-event-types",
+    async () => activeProjectId ? listDeliveries({ data: { projectId: activeProjectId, limit: 100 } }) : { deliveries: [] },
     TTL.DASHBOARD_SUMMARY
   )
   const { data: deliveriesData, loading, refresh } = useCachedData(
-    `webhook-deliveries:mode=${mode}:apiKeyId=${filters.apiKeyId ?? ""}:eventType=${filters.eventType ?? ""}:status=${filters.status ?? ""}:page=${page}`,
-    () => listDeliveries({ data: { apiKeyId: filters.apiKeyId, eventType: filters.eventType, status: filters.status, role: roleParam, limit: 20, offset: page * 20 } }),
+    activeProjectId ? `webhook-deliveries:proj=${activeProjectId}:mode=${mode}:apiKeyId=${filters.apiKeyId ?? ""}:eventType=${filters.eventType ?? ""}:status=${filters.status ?? ""}:page=${page}` : "webhook-deliveries",
+    async () => activeProjectId ? listDeliveries({ data: { projectId: activeProjectId, apiKeyId: filters.apiKeyId, eventType: filters.eventType, status: filters.status, role: roleParam, limit: 20, offset: page * 20 } }) : { deliveries: [] },
     TTL.WEBHOOK_DELIVERIES
   )
   const deliveries =

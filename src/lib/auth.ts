@@ -9,5 +9,5 @@ export const auth = betterAuth({
     enabled: true,
   },
   plugins: [tanstackStartCookies()],
-  baseURL: "BETTER_AUTH_BASE_URL",
+  baseURL: process.env.BETTER_AUTH_BASE_URL,
 })
