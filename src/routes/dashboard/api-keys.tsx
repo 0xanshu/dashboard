@@ -77,9 +77,7 @@ function ApiKeysList() {
     TTL.API_KEYS
   )
   const keys =
-    ((keysData as Record<string, unknown> | null)?.keys as Array<
-      Record<string, unknown>
-    >) ?? []
+    ((keysData as { keys: Array<Record<string, unknown>> } | null)?.keys) ?? []
 
   const [showCreate, setShowCreate] = useState(false)
   const [name, setName] = useState("")

@@ -87,7 +87,7 @@ export function WebhookList({
         )}
         {!loading && !error && deliveries.length > 0 && !compact && (
           <div className="mt-3">
-            <Pagination currentPage={page + 1} totalPages={Math.max(1, Math.ceil(deliveries.length / pageSize))} onPageChange={(p) => setPage(p - 1)} />
+            <Pagination currentPage={page + 1} totalPages={deliveries.length === pageSize ? page + 2 : page + 1} onPageChange={(p) => setPage(p - 1)} />
           </div>
         )}
       </CardContent>

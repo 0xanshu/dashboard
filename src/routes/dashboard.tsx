@@ -173,11 +173,14 @@ function DashboardLayout() {
     return () => window.removeEventListener("online", triggerRefresh)
   }, [triggerRefresh])
 
+  useEffect(() => {
+    if (!isPending && !checkingConfig && !session && !signingOut) {
+      navigate({ to: "/sign-in", replace: true })
+    }
+  }, [isPending, checkingConfig, session, signingOut, navigate])
+
   if (isPending || checkingConfig) return null
-  if (!session && !signingOut) {
-    navigate({ to: "/sign-in", replace: true })
-    return null
-  }
+  if (!session && !signingOut) return null
 
   return (
     <ProjectProvider>

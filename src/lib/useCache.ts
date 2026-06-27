@@ -261,7 +261,7 @@ export function useCachedData<T>(
   useEffect(() => {
     const interval = setInterval(() => doFetch(true), ttl)
     return () => clearInterval(interval)
-  }, [ttl, key]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ttl, key, doFetch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refresh = useCallback(async () => {
     invalidateCache(key)

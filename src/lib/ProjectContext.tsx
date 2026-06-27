@@ -26,12 +26,12 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       .then((projIds) => {
         if (!mounted) return
         setProjects(projIds)
-        if (projIds.length > 0) {
-          if (!activeProjectId || !projIds.includes(activeProjectId)) {
-            setActiveProjectId(projIds[0])
-          }
-        }
         setLoading(false)
+        if (projIds.length > 0) {
+          setActiveProjectId((current) =>
+            current && projIds.includes(current) ? current : projIds[0]
+          )
+        }
       })
       .catch(() => {
         if (mounted) setLoading(false)
@@ -40,7 +40,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mounted = false
     }
-  }, [activeProjectId])
+  }, [])
 
   return (
     <ProjectContext.Provider
