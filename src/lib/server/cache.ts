@@ -3,9 +3,12 @@ import { createDashboardKey } from "./apiKeys"
 
 type SessionType = Awaited<ReturnType<typeof useSession>>
 
+if (!process.env.SESSION_PASSWORD) {
+  throw new Error("SESSION_PASSWORD environment variable must be set")
+}
+
 export const sessionConfig = {
-  password:
-    process.env.SESSION_PASSWORD || "default-secret-password-must-be-32-chars!",
+  password: process.env.SESSION_PASSWORD,
 }
 
 export async function getDashboardKey(
@@ -30,9 +33,7 @@ export async function setDashboardKey(
   session: SessionType
 ): Promise<Record<string, string>> {
   try {
-    const result = await createDashboardKey({
-      data: { incomingUserId: session.data.userId },
-    })
+    const result = await createDashboardKey()
 
     if (result.error || !result.dashboardKeys) {
       console.error("Error creating dashboard keys:", result.error)

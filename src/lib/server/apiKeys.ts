@@ -7,6 +7,10 @@ import { org, project } from "@/db/schema"
 import { eq } from "drizzle-orm"
 
 const SCRAWN_HTTP_URL = process.env.SCRAWN_HTTP_URL || "http://localhost:8070"
+
+if (!process.env.MASTER_API_KEY) {
+  throw new Error("Master API Key is not set")
+}
 const MASTER_API_KEY = process.env.MASTER_API_KEY as string
 
 export const listApiKeys = createServerFn({ method: "GET" })
@@ -37,7 +41,7 @@ export const revokeApiKey = createServerFn({ method: "POST" })
 export const createDashboardKey = createServerFn({
   method: "POST",
 })
-  .inputValidator(validator<{ incomingUserId: string }>())
+  .inputValidator(validator<{}>())
   .handler(async (ctx) => {
     const request = getRequest()
     const session = await auth.api.getSession({
@@ -49,13 +53,6 @@ export const createDashboardKey = createServerFn({
     }
 
     const userId = session.user.id
-
-    if (userId !== ctx.data.incomingUserId) {
-      return {
-        error:
-          "current signed in user and incoming request user_id doesn't match",
-      }
-    }
 
     let userOrg = await db.query.org.findFirst({
       where: eq(org.userId, userId),

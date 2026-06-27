@@ -9,6 +9,10 @@ import { auth } from "../auth"
 import { sessionConfig } from "./cache"
 
 const SCRAWN_HTTP_URL = process.env.SCRAWN_HTTP_URL || "http://localhost:8070"
+
+if (!process.env.MASTER_API_KEY) {
+  throw new Error("Master API Key is not set")
+}
 const MASTER_API_KEY = process.env.MASTER_API_KEY as string
 
 export const getBackendConfig = createServerFn({ method: "GET" }).handler(

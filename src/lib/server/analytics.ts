@@ -17,28 +17,26 @@ import { eq as drizzleEq } from "drizzle-orm"
 import { getDashboardKey } from "./cache"
 
 async function getProjectAnalytics(): Promise<Analytics> {
-  try {
-    const request = getRequest()
-    const session = await auth.api.getSession({ headers: request?.headers })
-    if (session) {
-      const userOrg = await db.query.org.findFirst({
-        where: drizzleEq(org.userId, session.user.id),
+  const request = getRequest()
+  const session = await auth.api.getSession({ headers: request?.headers })
+  if (session) {
+    const userOrg = await db.query.org.findFirst({
+      where: drizzleEq(org.userId, session.user.id),
+    })
+    if (userOrg) {
+      const projects = await db.query.project.findMany({
+        where: drizzleEq(project.orgId, userOrg.orgId),
+        limit: 1,
       })
-      if (userOrg) {
-        const projects = await db.query.project.findMany({
-          where: drizzleEq(project.orgId, userOrg.orgId),
-          limit: 1,
-        })
-        if (projects.length > 0) {
-          const apiKey = await getDashboardKey(projects[0].projectId)
-          if (apiKey) {
-            return createAnalytics(apiKey)
-          }
+      if (projects.length > 0) {
+        const apiKey = await getDashboardKey(projects[0].projectId)
+        if (apiKey) {
+          return createAnalytics(apiKey)
         }
       }
     }
-  } catch {}
-  return createAnalytics()
+  }
+  throw new Error("No API key available for analytics")
 }
 
 export const getUsageOverTime = createServerFn({ method: "GET" })
