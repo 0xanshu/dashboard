@@ -173,12 +173,6 @@ export const deleteProject = createServerFn({ method: "POST" })
       return { error: "Master API Key is not set on the server" }
     }
 
-    try {
-      await db.delete(project).where(eq(project.projectId, data.projectId))
-    } catch (e: any) {
-      return { error: "Failed to delete project locally. " + e.message }
-    }
-
     const res = await fetch(
       `${SCRAWN_HTTP_URL}/api/v1/internals/projects/${data.projectId}`,
       {
@@ -196,6 +190,12 @@ export const deleteProject = createServerFn({ method: "POST" })
           "Project deleted locally but backend cleanup failed: " +
           (err.message || "Unknown error"),
       }
+    }
+
+    try {
+      await db.delete(project).where(eq(project.projectId, data.projectId))
+    } catch (e: any) {
+      return { error: "Failed to delete project locally. " + e.message }
     }
 
     return { success: true }
