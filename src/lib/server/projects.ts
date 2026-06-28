@@ -94,7 +94,34 @@ export const updateProject = createServerFn({ method: "POST" })
       return { error: "Project not found or access denied" }
     }
 
-    const { projectId, ...updates } = data
+    const {
+      projectId,
+      name,
+      dodoLiveApiKey,
+      dodoTestApiKey,
+      dodoLiveProductId,
+      dodoTestProductId,
+      currency,
+      redirectUrl,
+    } = data as {
+      projectId: string
+      name?: string
+      dodoLiveApiKey?: string
+      dodoTestApiKey?: string
+      dodoLiveProductId?: string
+      dodoTestProductId?: string
+      currency?: string
+      redirectUrl?: string
+    }
+    const updates = {
+      name,
+      dodoLiveApiKey,
+      dodoTestApiKey,
+      dodoLiveProductId,
+      dodoTestProductId,
+      currency,
+      redirectUrl,
+    }
 
     const MASTER_API_KEY = process.env.MASTER_API_KEY
     if (!MASTER_API_KEY) {
@@ -146,6 +173,12 @@ export const deleteProject = createServerFn({ method: "POST" })
       return { error: "Master API Key is not set on the server" }
     }
 
+    try {
+      await db.delete(project).where(eq(project.projectId, data.projectId))
+    } catch (e: any) {
+      return { error: "Failed to delete project locally. " + e.message }
+    }
+
     const res = await fetch(
       `${SCRAWN_HTTP_URL}/api/v1/internals/projects/${data.projectId}`,
       {
@@ -158,10 +191,12 @@ export const deleteProject = createServerFn({ method: "POST" })
 
     if (!res.ok) {
       const err = await res.json()
-      return { error: err.message || "Failed to delete project on backend" }
+      return {
+        error:
+          "Project deleted locally but backend cleanup failed: " +
+          (err.message || "Unknown error"),
+      }
     }
-
-    await db.delete(project).where(eq(project.projectId, data.projectId))
 
     return { success: true }
   })
