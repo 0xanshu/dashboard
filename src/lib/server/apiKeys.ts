@@ -71,7 +71,6 @@ export const createDashboardKey = createServerFn({
     }
 
     const fetchPromises = allProjects.map(async (p) => {
-      try {
         const res = await fetch(
           `${SCRAWN_HTTP_URL}/api/v1/create-dashboard-key/${p.projectId}`,
           {
@@ -101,10 +100,6 @@ export const createDashboardKey = createServerFn({
           projectId: data.projectId as string,
           dashboardKey: data.apiKey as string,
         }
-      } catch (err) {
-        console.error(err)
-        return null
-      }
     })
 
     try {
@@ -112,7 +107,7 @@ export const createDashboardKey = createServerFn({
 
       const dashboardKeys: Record<string, string> = {}
       for (const result of results) {
-        if (result) dashboardKeys[result.projectId] = result.dashboardKey
+        dashboardKeys[result.projectId] = result.dashboardKey
       }
 
       return { dashboardKeys }

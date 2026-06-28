@@ -8,6 +8,7 @@ export function validator<T>(): { (): T; (value: unknown): T } {
 
 export async function apiGet(projectId: string, path: string) {
   const DASHBOARD_KEY = await getDashboardKey(projectId)
+  if (!DASHBOARD_KEY) throw new Error("Dashboard API key not found for project")
 
   const res = await fetch(`${SCRAWN_HTTP_URL}${path}`, {
     headers: { Authorization: `Bearer ${DASHBOARD_KEY}` },
@@ -21,6 +22,8 @@ export async function apiGet(projectId: string, path: string) {
 
 export async function apiPost(projectId: string, path: string, body: unknown) {
   const DASHBOARD_KEY = await getDashboardKey(projectId)
+  if (!DASHBOARD_KEY) throw new Error("Dashboard API key not found for project")
+
   const res = await fetch(`${SCRAWN_HTTP_URL}${path}`, {
     method: "POST",
     headers: {
@@ -38,6 +41,8 @@ export async function apiPost(projectId: string, path: string, body: unknown) {
 
 export async function apiDelete(projectId: string, path: string) {
   const DASHBOARD_KEY = await getDashboardKey(projectId)
+  if (!DASHBOARD_KEY) throw new Error("Dashboard API key not found for project")
+
   const res = await fetch(`${SCRAWN_HTTP_URL}${path}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${DASHBOARD_KEY}` },

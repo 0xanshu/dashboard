@@ -236,6 +236,10 @@ export const getFilteredEvents = createServerFn({ method: "GET" })
         .orderBy(desc(bf.ingestedTimestamp))
         .limit(fetchLimit)
       if (conds.length > 0) q = q.where(and(...conds))
+
+      if (ctx.data.eventType && ctx.data.eventType !== "BASIC_USAGE") {
+        return Promise.resolve({ rows: [], total: 0 } as unknown as Awaited<ReturnType<typeof q.execute>>)
+      }
       return q.execute()
     }
 
@@ -249,6 +253,10 @@ export const getFilteredEvents = createServerFn({ method: "GET" })
         .orderBy(desc(af.ingestedTimestamp))
         .limit(fetchLimit)
       if (conds.length > 0) q = q.where(and(...conds))
+
+      if (ctx.data.eventType && ctx.data.eventType !== "AI_TOKEN_USAGE") {
+        return Promise.resolve({ rows: [], total: 0 } as unknown as Awaited<ReturnType<typeof q.execute>>)
+      }
       return q.execute()
     }
 

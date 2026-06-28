@@ -6,7 +6,9 @@ export const listTags = createServerFn({ method: "GET" })
   .handler(async (ctx) => apiGet(ctx.data.projectId, "/api/v1/tags"))
 
 export const createTag = createServerFn({ method: "POST" })
-  .inputValidator(validator<{ projectId: string; key: string; amount: number }>())
+  .inputValidator(
+    validator<{ projectId: string; key: string; amount: number }>()
+  )
   .handler(async (ctx) => {
     const { projectId, ...payload } = ctx.data
     return apiPost(projectId, "/api/v1/tags", payload)
@@ -14,4 +16,9 @@ export const createTag = createServerFn({ method: "POST" })
 
 export const deleteTag = createServerFn({ method: "POST" })
   .inputValidator(validator<{ projectId: string; key: string }>())
-  .handler(async (ctx) => apiDelete(ctx.data.projectId, `/api/v1/tags/${ctx.data.key}`))
+  .handler(async (ctx) =>
+    apiDelete(
+      ctx.data.projectId,
+      `/api/v1/tags/${encodeURIComponent(ctx.data.key)}`
+    )
+  )

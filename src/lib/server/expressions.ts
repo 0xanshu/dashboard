@@ -14,4 +14,9 @@ export const createExpression = createServerFn({ method: "POST" })
 
 export const deleteExpression = createServerFn({ method: "POST" })
   .inputValidator(validator<{ projectId: string; key: string }>())
-  .handler(async (ctx) => apiDelete(ctx.data.projectId, `/api/v1/expressions/${ctx.data.key}`))
+  .handler(async (ctx) =>
+    apiDelete(
+      ctx.data.projectId,
+      `/api/v1/expressions/${encodeURIComponent(ctx.data.key)}`
+    )
+  )

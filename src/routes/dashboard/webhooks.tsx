@@ -7,6 +7,32 @@ import { WebhookFilters, type WebhookFiltersValue } from "@/components/webhooks/
 import { Button } from "@/components/ui/button"
 import { useProject } from "@/lib/ProjectContext"
 
+const DODO_WEBHOOK_EVENTS = [
+  "payment.succeeded",
+  "payment.failed",
+  "payment.processing",
+  "payment.cancelled",
+  "subscription.active",
+  "subscription.updated",
+  "subscription.on_hold",
+  "subscription.renewed",
+  "subscription.plan_changed",
+  "subscription.cancelled",
+  "subscription.failed",
+  "subscription.expired",
+  "refund.succeeded",
+  "dispute.opened",
+  "license_key.created",
+  "credit.added",
+  "credit.deducted",
+  "credit.expired",
+  "credit.rolled_over",
+  "credit.rollover_forfeited",
+  "credit.overage_charged",
+  "credit.manual_adjustment",
+  "credit.balance_low"
+]
+
 export const Route = createFileRoute("/dashboard/webhooks")({
   head: () => ({
     meta: [
@@ -60,11 +86,7 @@ function WebhooksPage() {
     async () => activeProjectId ? listApiKeys({ data: { projectId: activeProjectId } }) : { keys: [] },
     TTL.API_KEYS
   )
-  const allTypes = useCachedData(
-    activeProjectId ? `webhooks-event-types-${activeProjectId}` : "webhooks-event-types",
-    async () => activeProjectId ? listDeliveries({ data: { projectId: activeProjectId, limit: 100 } }) : { deliveries: [] },
-    TTL.DASHBOARD_SUMMARY
-  )
+
   const { data: deliveriesData, loading, refresh } = useCachedData(
     activeProjectId ? `webhook-deliveries:proj=${activeProjectId}:mode=${mode}:apiKeyId=${filters.apiKeyId ?? ""}:eventType=${filters.eventType ?? ""}:status=${filters.status ?? ""}:page=${page}` : "webhook-deliveries",
     async () => activeProjectId ? listDeliveries({ data: { projectId: activeProjectId, apiKeyId: filters.apiKeyId, eventType: filters.eventType, status: filters.status, role: roleParam, limit: 20, offset: page * 20 } }) : { deliveries: [] },
@@ -80,9 +102,7 @@ function WebhooksPage() {
     value: k.id as string,
     label: k.name as string,
   }))
-  const allDeliveries =
-    ((allTypes.data as { deliveries: Array<Record<string, unknown>> } | null)?.deliveries ?? [])
-  const eventTypeOptions = [...new Set(allDeliveries.map((d) => String(d.eventType ?? "")).filter(Boolean))]
+  const eventTypeOptions = DODO_WEBHOOK_EVENTS
 
   function toggleExpand(id: string) {
     setExpanded((prev) => {
