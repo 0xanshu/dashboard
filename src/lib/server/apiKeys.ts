@@ -8,11 +8,6 @@ import { eq } from "drizzle-orm"
 
 const SCRAWN_HTTP_URL = process.env.SCRAWN_HTTP_URL || "http://localhost:8070"
 
-if (!process.env.MASTER_API_KEY) {
-  throw new Error("Master API Key is not set")
-}
-const MASTER_API_KEY = process.env.MASTER_API_KEY as string
-
 export const listApiKeys = createServerFn({ method: "GET" })
   .inputValidator(validator<{ projectId: string }>())
   .handler(async (ctx) => apiGet(ctx.data.projectId, "/api/v1/api-keys"))
@@ -68,6 +63,11 @@ export const createDashboardKey = createServerFn({
 
     if (allProjects.length === 0) {
       return { error: "No projects found under this org" }
+    }
+
+    const MASTER_API_KEY = process.env.MASTER_API_KEY
+    if (!MASTER_API_KEY) {
+      return { error: "Master API Key is not set on the server" }
     }
 
     const fetchPromises = allProjects.map(async (p) => {

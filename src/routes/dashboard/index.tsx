@@ -7,6 +7,7 @@ import {
 } from "@/lib/scrawn-server"
 import { TTL, useCachedData } from "@/lib/useCache"
 import { useMode } from "@/lib/ModeContext"
+import { useProject } from "@/lib/ProjectContext"
 import { UsageOverTime } from "@/components/analytics/usage-over-time"
 import { AiTokenUsage } from "@/components/analytics/ai-token-usage"
 import { PaymentHistory } from "@/components/analytics/payment-history"
@@ -94,27 +95,40 @@ function StackedWrapper({
 
 function DashboardHome() {
   const { mode, setMode } = useMode()
+  const { activeProjectId } = useProject()
 
   const modeParam = mode === "all" ? undefined : mode
 
   const summary = useCachedData(
-    `summary:${mode}`,
-    () => getDashboardSummary({ data: { mode: modeParam } }),
+    activeProjectId ? `summary:${activeProjectId}:${mode}` : `summary:${mode}`,
+    async () => {
+      if (!activeProjectId) throw new Error("Waiting for active project...")
+      return getDashboardSummary({ data: { projectId: activeProjectId, mode: modeParam } })
+    },
     TTL.DASHBOARD_SUMMARY
   )
   const usage = useCachedData(
-    `usage-over-time:${mode}`,
-    () => getUsageOverTime({ data: { mode: modeParam } }),
+    activeProjectId ? `usage-over-time:${activeProjectId}:${mode}` : `usage-over-time:${mode}`,
+    async () => {
+      if (!activeProjectId) throw new Error("Waiting for active project...")
+      return getUsageOverTime({ data: { projectId: activeProjectId, mode: modeParam } })
+    },
     TTL.USAGE_OVER_TIME
   )
   const payments = useCachedData(
-    `payment-history:${mode}`,
-    () => getPaymentHistory({ data: { mode: modeParam } }),
+    activeProjectId ? `payment-history:${activeProjectId}:${mode}` : `payment-history:${mode}`,
+    async () => {
+      if (!activeProjectId) throw new Error("Waiting for active project...")
+      return getPaymentHistory({ data: { projectId: activeProjectId, mode: modeParam } })
+    },
     TTL.PAYMENT_HISTORY
   )
   const ai = useCachedData(
-    `ai-token-usage:${mode}`,
-    () => getAiTokenUsage({ data: { mode: modeParam } }),
+    activeProjectId ? `ai-token-usage:${activeProjectId}:${mode}` : `ai-token-usage:${mode}`,
+    async () => {
+      if (!activeProjectId) throw new Error("Waiting for active project...")
+      return getAiTokenUsage({ data: { projectId: activeProjectId, mode: modeParam } })
+    },
     TTL.AI_TOKEN_USAGE
   )
 

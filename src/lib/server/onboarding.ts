@@ -10,11 +10,6 @@ import { sessionConfig } from "./cache"
 
 const SCRAWN_HTTP_URL = process.env.SCRAWN_HTTP_URL || "http://localhost:8070"
 
-if (!process.env.MASTER_API_KEY) {
-  throw new Error("Master API Key is not set")
-}
-const MASTER_API_KEY = process.env.MASTER_API_KEY as string
-
 export const getBackendConfig = createServerFn({ method: "GET" }).handler(
   async () => {
     const request = getRequest()
@@ -79,6 +74,11 @@ export const submitOnboarding = createServerFn({ method: "POST" })
         })
         .returning()
       userOrg = newOrg
+    }
+
+    const MASTER_API_KEY = process.env.MASTER_API_KEY
+    if (!MASTER_API_KEY) {
+      return { error: "Master API Key is not set on the server" }
     }
 
     const res = await fetch(`${SCRAWN_HTTP_URL}/api/v1/internals/onboarding`, {

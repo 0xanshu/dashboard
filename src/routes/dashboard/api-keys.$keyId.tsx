@@ -29,15 +29,22 @@ function ApiKeyDetailPage() {
   const { activeProjectId } = useProject()
   const keys = useCachedData(
     activeProjectId ? `api-key-detail-${activeProjectId}` : "api-key-detail",
-    async () =>
-      activeProjectId
-        ? listApiKeys({ data: { projectId: activeProjectId } })
-        : { keys: [] },
+    async () => {
+      if (!activeProjectId) {
+        throw new Error("Waiting for active project...")
+      }
+      return listApiKeys({ data: { projectId: activeProjectId } })
+    },
     TTL.API_KEYS
   )
   const summary = useCachedData(
-    `api-key-summary-${keyId}`,
-    () => getApiKeySummary({ data: { apiKeyId: keyId } }),
+    activeProjectId ? `api-key-summary-${keyId}-${activeProjectId}` : `api-key-summary-${keyId}`,
+    async () => {
+      if (!activeProjectId) {
+        throw new Error("Waiting for active project...")
+      }
+      return getApiKeySummary({ data: { projectId: activeProjectId, apiKeyId: keyId } })
+    },
     TTL.DASHBOARD_SUMMARY
   )
   const { triggerRefresh } = useContext(RefreshContext)

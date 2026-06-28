@@ -15,6 +15,8 @@ import {
   LogOut,
   RefreshCw,
   Folder,
+  ChevronDown,
+  FolderPlus,
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { getBackendConfig } from "@/lib/scrawn-server"
@@ -73,6 +75,7 @@ const navItems = [
   { path: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { path: "/dashboard/api-keys", label: "API Keys", icon: Key },
   { path: "/dashboard/webhooks", label: "Webhooks", icon: Webhook },
+  { path: "/dashboard/projects", label: "Projects", icon: FolderPlus },
   { path: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
@@ -83,35 +86,40 @@ function ProjectSelector({ expanded }: { expanded: boolean }) {
   if (loading || projects.length === 0) return null
 
   return (
-    <div className="mt-4 px-2">
+    <div
+      className={`group relative mb-2 flex h-10 w-full shrink-0 items-center overflow-hidden transition-all ${
+        expanded
+          ? "border-2 border-black bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-neutral-900 dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)]"
+          : "justify-center border-2 border-white bg-transparent"
+      }`}
+    >
       <div
-        className={`flex items-center overflow-hidden transition-all duration-200 ${
-          expanded
-            ? "border-2 border-black bg-neutral-50 p-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none"
-            : "w-full justify-center border-2 border-transparent bg-transparent p-0"
-        }`}
+        className={`flex w-11 shrink-0 items-center justify-center ${expanded ? "h-full border-r-2 border-black bg-neutral-700/50 dark:border-white dark:bg-neutral-800/50" : ""}`}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-black bg-gray-200 text-black dark:border-transparent dark:bg-gray-800 dark:text-white">
-          <Folder className="h-5 w-5" />
-        </div>
-        <motion.div
-          animate={{ width: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-1 overflow-hidden px-2"
-        >
-          <select
-            value={activeProjectId || ""}
-            onChange={(e) => setActiveProjectId(e.target.value)}
-            className="w-full bg-transparent font-mono text-xs font-bold text-black uppercase outline-none dark:text-white"
-          >
-            {projects.map((p) => (
-              <option key={p} value={p}>
-                PROJ {p.slice(0, 8)}
-              </option>
-            ))}
-          </select>
-        </motion.div>
+        <Folder className="h-4 w-4 text-gray-400 transition-colors group-hover:text-white" />
       </div>
+      <motion.div
+        animate={{ width: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
+        transition={{ duration: 0.2 }}
+        className="flex-1 overflow-hidden"
+      >
+        <select
+          value={activeProjectId || ""}
+          onChange={(e) => setActiveProjectId(e.target.value)}
+          className="w-full cursor-pointer appearance-none bg-transparent px-3 py-2 font-mono text-[10px] font-bold text-white uppercase outline-none"
+        >
+          {projects.map((p) => (
+            <option key={p} value={p}>
+              PROJ {p.slice(0, 8)}
+            </option>
+          ))}
+        </select>
+      </motion.div>
+      {expanded && (
+        <div className="pointer-events-none flex items-center justify-center pr-3">
+          <ChevronDown className="h-4 w-4 text-gray-400" />
+        </div>
+      )}
     </div>
   )
 }
@@ -161,6 +169,7 @@ function DashboardLayout() {
     const routes = [
       "/dashboard",
       "/dashboard/api-keys",
+      "/dashboard/projects",
       "/dashboard/settings",
       "/dashboard/webhooks",
     ]
@@ -261,8 +270,6 @@ function DashboardLayout() {
                 })}
               </nav>
 
-              <ProjectSelector expanded={expanded} />
-
               <div className="mt-auto flex flex-col gap-2 p-2">
                 {/* Session info profile widget */}
                 <div
@@ -293,6 +300,8 @@ function DashboardLayout() {
                     </span>
                   </motion.div>
                 </div>
+
+                <ProjectSelector expanded={expanded} />
 
                 <button
                   onClick={() => setRefreshVersion((v) => v + 1)}

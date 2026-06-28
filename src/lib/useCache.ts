@@ -217,6 +217,7 @@ export function useCachedData<T>(
 
   // Hydrate from cache on mount; fetch if missing or stale
   useEffect(() => {
+    setError(null)
     const cached = getFromCache<T>(key)
     if (cached !== null && isCacheFresh(key)) {
       setData(cached)

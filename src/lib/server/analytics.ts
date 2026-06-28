@@ -13,10 +13,10 @@ import { getRequest } from "@tanstack/react-start/server"
 import { auth } from "../auth"
 import { db } from "../db"
 import { org, project } from "@/db/schema"
-import { eq as drizzleEq } from "drizzle-orm"
+import { eq as drizzleEq, and as drizzleAnd } from "drizzle-orm"
 import { getDashboardKey } from "./cache"
 
-async function getProjectAnalytics(): Promise<Analytics> {
+async function getProjectAnalytics(projectId: string): Promise<Analytics> {
   const request = getRequest()
   const session = await auth.api.getSession({ headers: request?.headers })
   if (session) {
@@ -24,12 +24,14 @@ async function getProjectAnalytics(): Promise<Analytics> {
       where: drizzleEq(org.userId, session.user.id),
     })
     if (userOrg) {
-      const projects = await db.query.project.findMany({
-        where: drizzleEq(project.orgId, userOrg.orgId),
-        limit: 1,
+      const userProject = await db.query.project.findFirst({
+        where: drizzleAnd(
+          drizzleEq(project.orgId, userOrg.orgId),
+          drizzleEq(project.projectId, projectId)
+        ),
       })
-      if (projects.length > 0) {
-        const apiKey = await getDashboardKey(projects[0].projectId)
+      if (userProject) {
+        const apiKey = await getDashboardKey(userProject.projectId)
         if (apiKey) {
           return createAnalytics(apiKey)
         }
@@ -40,9 +42,9 @@ async function getProjectAnalytics(): Promise<Analytics> {
 }
 
 export const getUsageOverTime = createServerFn({ method: "GET" })
-  .inputValidator(validator<{ mode?: string }>())
+  .inputValidator(validator<{ projectId: string; mode?: string }>())
   .handler(async (ctx) => {
-    const analytics = await getProjectAnalytics()
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const f = analytics.query.basicUsage.fields
     let q = analytics.query.basicUsage
       .aggregate(sum(f.debitAmount))
@@ -59,9 +61,10 @@ export const getUsageOverTime = createServerFn({ method: "GET" })
       .map((r) => ({ groupValue: r.groupValue!, aggValue: r.aggValue }))
   })
 
-export const getTopUsers = createServerFn({ method: "GET" }).handler(
-  async () => {
-    const analytics = await getProjectAnalytics()
+export const getTopUsers = createServerFn({ method: "GET" })
+  .inputValidator(validator<{ projectId: string }>())
+  .handler(async (ctx) => {
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const f = analytics.query.basicUsage.fields
     const result = await analytics.query.basicUsage
       .aggregate(sum(f.debitAmount))
@@ -76,10 +79,10 @@ export const getTopUsers = createServerFn({ method: "GET" }).handler(
   }
 )
 
-export const getEventTypeDistribution = createServerFn({
-  method: "GET",
-}).handler(async () => {
-  const analytics = await getProjectAnalytics()
+export const getEventTypeDistribution = createServerFn({ method: "GET" })
+  .inputValidator(validator<{ projectId: string }>())
+  .handler(async (ctx) => {
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
   const f = analytics.query.basicUsage.fields
   const result = await analytics.query.basicUsage
     .aggregate(analyticsCount())
@@ -92,9 +95,9 @@ export const getEventTypeDistribution = createServerFn({
 })
 
 export const getAiTokenUsage = createServerFn({ method: "GET" })
-  .inputValidator(validator<{ mode?: string }>())
+  .inputValidator(validator<{ projectId: string; mode?: string }>())
   .handler(async (ctx) => {
-    const analytics = await getProjectAnalytics()
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const f = analytics.query.aiToken.fields
     const mode = ctx.data.mode
 
@@ -126,10 +129,10 @@ export const getAiTokenUsage = createServerFn({ method: "GET" })
     }
   })
 
-export const getAiTokenUsageOverTime = createServerFn({
-  method: "GET",
-}).handler(async () => {
-  const analytics = await getProjectAnalytics()
+export const getAiTokenUsageOverTime = createServerFn({ method: "GET" })
+  .inputValidator(validator<{ projectId: string }>())
+  .handler(async (ctx) => {
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
   const f = analytics.query.aiToken.fields
   const result = await analytics.query.aiToken
     .orderBy(desc(f.ingestedTimestamp))
@@ -172,9 +175,9 @@ export const getAiTokenUsageOverTime = createServerFn({
 })
 
 export const getPaymentHistory = createServerFn({ method: "GET" })
-  .inputValidator(validator<{ mode?: string }>())
+  .inputValidator(validator<{ projectId: string; mode?: string }>())
   .handler(async (ctx) => {
-    const analytics = await getProjectAnalytics()
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const f = analytics.query.payment.fields
     const mode = ctx.data.mode
     let q = analytics.query.payment
@@ -190,9 +193,10 @@ export const getPaymentHistory = createServerFn({ method: "GET" })
       .map((r) => ({ groupValue: r.groupValue!, aggValue: r.aggValue }))
   })
 
-export const getRecentEvents = createServerFn({ method: "GET" }).handler(
-  async () => {
-    const analytics = await getProjectAnalytics()
+export const getRecentEvents = createServerFn({ method: "GET" })
+  .inputValidator(validator<{ projectId: string }>())
+  .handler(async (ctx) => {
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const f = analytics.query.basicUsage.fields
     const result = await analytics.query.basicUsage
       .orderBy(desc(f.ingestedTimestamp))
@@ -205,6 +209,7 @@ export const getRecentEvents = createServerFn({ method: "GET" }).handler(
 export const getFilteredEvents = createServerFn({ method: "GET" })
   .inputValidator(
     validator<{
+      projectId: string
       apiKeyId?: string
       userId?: string
       eventType?: string
@@ -215,7 +220,7 @@ export const getFilteredEvents = createServerFn({ method: "GET" })
     }>()
   )
   .handler(async (ctx) => {
-    const analytics = await getProjectAnalytics()
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const bf = analytics.query.basicUsage.fields
     const af = analytics.query.aiToken.fields
     const limit = ctx.data.limit ?? 10
@@ -289,9 +294,9 @@ export const getFilteredEvents = createServerFn({ method: "GET" })
   })
 
 export const getApiKeySummary = createServerFn({ method: "GET" })
-  .inputValidator(validator<{ apiKeyId: string }>())
+  .inputValidator(validator<{ projectId: string; apiKeyId: string }>())
   .handler(async (ctx) => {
-    const analytics = await getProjectAnalytics()
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const sf = analytics.query.basicUsage.fields
     const af = analytics.query.aiToken.fields
     const pf = analytics.query.payment.fields
@@ -356,9 +361,9 @@ export const getApiKeySummary = createServerFn({ method: "GET" })
   })
 
 export const getDashboardSummary = createServerFn({ method: "GET" })
-  .inputValidator(validator<{ mode?: string }>())
+  .inputValidator(validator<{ projectId: string; mode?: string }>())
   .handler(async (ctx) => {
-    const analytics = await getProjectAnalytics()
+    const analytics = await getProjectAnalytics(ctx.data.projectId)
     const sf = analytics.query.basicUsage.fields
     const af = analytics.query.aiToken.fields
     const pf = analytics.query.payment.fields

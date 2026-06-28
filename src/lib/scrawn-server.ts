@@ -13,7 +13,7 @@ export {
   getDashboardSummary,
 } from "./server/analytics"
 export { listApiKeys, createApiKey, revokeApiKey } from "./server/apiKeys"
-export { listProjects } from "./server/projects"
+export { listProjects, listProjectConfigs, updateProject, deleteProject } from "./server/projects"
 export { listTags, createTag, deleteTag } from "./server/tags"
 export {
   listExpressions,
