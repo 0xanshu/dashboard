@@ -187,7 +187,7 @@ export const deleteProject = createServerFn({ method: "POST" })
       const err = await res.json()
       return {
         error:
-          "Project deleted locally but backend cleanup failed: " +
+          "Failed to delete project on backend: " +
           (err.message || "Unknown error"),
       }
     }

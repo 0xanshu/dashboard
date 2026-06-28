@@ -42,7 +42,10 @@ export async function setDashboardKey(
 
     await session.update({
       ...session.data,
-      dashboard_keys: result.dashboardKeys,
+      dashboard_keys: {
+        ...(session.data.dashboard_keys || {}),
+        ...result.dashboardKeys,
+      },
     })
 
     return result.dashboardKeys
