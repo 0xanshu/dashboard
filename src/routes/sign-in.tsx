@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { checkUsersExist, createAdminUser } from "@/lib/scrawn-server"
+import { clearDashboardSession } from "@/lib/server/cache"
 import { Eye, EyeOff, Lock, Mail, User, ShieldAlert, ArrowRight } from "lucide-react"
 import { ThemeToggle } from "@/components/ThemeToggle"
 
@@ -79,6 +80,13 @@ function SignIn() {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    try {
+      await clearDashboardSession()
+    } catch (err) {
+      console.error("Failed to clear dashboard session", err)
+    }
+
     const { error: signInError } = await authClient.signIn.email({
       email,
       password,
@@ -93,6 +101,13 @@ function SignIn() {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    try {
+      await clearDashboardSession()
+    } catch (err) {
+      console.error("Failed to clear dashboard session", err)
+    }
+
     const res = await createAdminUser({ data: { name, email, password } })
     if (res.error) {
       setError(res.error)

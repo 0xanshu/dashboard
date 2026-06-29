@@ -1,4 +1,5 @@
 import { useSession } from "@tanstack/react-start/server"
+import { createServerFn } from "@tanstack/react-start"
 import { createDashboardKey } from "./apiKeys"
 
 type SessionType = Awaited<ReturnType<typeof useSession>>
@@ -68,3 +69,19 @@ export async function setDashboardKey(
     return { error: error.message }
   }
 }
+
+export const clearDashboardSession = createServerFn({ method: "POST" }).handler(
+  async () => {
+    try {
+      const session = await useSession(sessionConfig)
+      await session.update({
+        ...session.data,
+        dashboard_keys: {},
+      })
+      return { success: true }
+    } catch (error) {
+      console.error("Failed to clear dashboard session:", error)
+      return { error: "Failed to clear dashboard session" }
+    }
+  }
+)

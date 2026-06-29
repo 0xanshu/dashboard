@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { getBackendConfig } from "@/lib/scrawn-server"
+import { clearDashboardSession } from "@/lib/server/cache"
 import {
   RefreshContext,
   useIsRefreshing,
@@ -326,8 +327,13 @@ function DashboardLayout() {
                 </button>
 
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setSigningOut(true)
+                    try {
+                      await clearDashboardSession()
+                    } catch (e) {
+                      console.error("Failed to clear dashboard session", e)
+                    }
                     authClient.signOut().then(() => {
                       window.location.href = "/sign-in"
                     })
