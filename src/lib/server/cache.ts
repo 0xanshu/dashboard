@@ -20,8 +20,11 @@ export async function getDashboardKey(
     if (session.data.dashboard_keys?.[project_id]) {
       return session.data.dashboard_keys[project_id]
     } else {
-      const allDashboardKeys = await setDashboardKey(session)
-      return allDashboardKeys[project_id] || null
+      const result = await setDashboardKey(session, project_id)
+      if (result.error) {
+        throw new Error(result.error)
+      }
+      return session.data.dashboard_keys?.[project_id] || null
     }
   } catch (error) {
     console.error("Failed to get dashboard key session:", error)
@@ -30,27 +33,38 @@ export async function getDashboardKey(
 }
 
 export async function setDashboardKey(
-  session: SessionType
-): Promise<Record<string, string>> {
+  session: SessionType,
+  targetProjectId?: string
+): Promise<{ error?: string }> {
   try {
-    const result = await createDashboardKey()
+    const existingKeys = Object.keys(session.data.dashboard_keys || {})
+    const result = await createDashboardKey({ data: { existingKeys } })
 
-    if (result.error || !result.dashboardKeys) {
-      console.error("Error creating dashboard keys:", result.error)
+    if (result.error) {
+      console.error("Error creating dashboard keys globally:", result.error)
+      if (targetProjectId) {
+        return { error: result.error }
+      }
       return {}
     }
 
-    await session.update({
-      ...session.data,
-      dashboard_keys: {
-        ...(session.data.dashboard_keys || {}),
-        ...result.dashboardKeys,
-      },
-    })
+    if (result.dashboardKeys && Object.keys(result.dashboardKeys).length > 0) {
+      await session.update({
+        ...session.data,
+        dashboard_keys: {
+          ...(session.data.dashboard_keys || {}),
+          ...result.dashboardKeys,
+        },
+      })
+    }
 
-    return result.dashboardKeys
-  } catch (error) {
-    console.error("Failed to set dashboard keys:", error)
+    if (targetProjectId && result.errors?.[targetProjectId]) {
+      return { error: result.errors[targetProjectId] }
+    }
+
     return {}
+  } catch (error: any) {
+    console.error("Failed to set dashboard keys:", error)
+    return { error: error.message }
   }
 }

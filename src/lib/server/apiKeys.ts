@@ -36,8 +36,9 @@ export const revokeApiKey = createServerFn({ method: "POST" })
 export const createDashboardKey = createServerFn({
   method: "POST",
 })
-  .inputValidator(validator<{}>())
+  .inputValidator(validator<{ existingKeys?: string[] }>())
   .handler(async (ctx) => {
+    const existingKeys = ctx.data.existingKeys || []
     const request = getRequest()
     const session = await auth.api.getSession({
       headers: request?.headers,
@@ -65,56 +66,66 @@ export const createDashboardKey = createServerFn({
       return { error: "No projects found under this org" }
     }
 
+    const projectsToFetch = allProjects.filter(
+      (p) => !existingKeys.includes(p.projectId)
+    )
+
+    if (projectsToFetch.length === 0) {
+      return { dashboardKeys: {}, errors: {} }
+    }
+
     const MASTER_API_KEY = process.env.MASTER_API_KEY
     if (!MASTER_API_KEY) {
       return { error: "Master API Key is not set on the server" }
     }
 
-    const fetchPromises = allProjects.map(async (p) => {
-        const res = await fetch(
-          `${SCRAWN_HTTP_URL}/api/v1/create-dashboard-key/${p.projectId}`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${MASTER_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ...ctx.data }),
-          }
+    const fetchPromises = projectsToFetch.map(async (p) => {
+      const res = await fetch(
+        `${SCRAWN_HTTP_URL}/api/v1/create-dashboard-key/${p.projectId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${MASTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        }
+      )
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(
+          body.error || `Failed to create key for project ${p.projectId}`
         )
+      }
 
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}))
-          throw new Error(
-            body.error || `Failed to create key for project ${p.projectId}`
-          )
-        }
+      const data = await res.json().catch(() => ({}))
 
-        const data = await res.json().catch(() => ({}))
+      if (!data.projectId || !data.apiKey) {
+        throw new Error(`Invalid response for project ${p.projectId}`)
+      }
 
-        if (!data.projectId || !data.apiKey) {
-          throw new Error(`Invalid response for project ${p.projectId}`)
-        }
-
-        return {
-          projectId: data.projectId as string,
-          dashboardKey: data.apiKey as string,
-        }
+      return {
+        projectId: data.projectId as string,
+        dashboardKey: data.apiKey as string,
+      }
     })
 
-    try {
-      const results = await Promise.all(fetchPromises)
+    const results = await Promise.allSettled(fetchPromises)
 
-      const dashboardKeys: Record<string, string> = {}
-      for (const result of results) {
-        dashboardKeys[result.projectId] = result.dashboardKey
-      }
+    const dashboardKeys: Record<string, string> = {}
+    const errors: Record<string, string> = {}
 
-      return { dashboardKeys }
-    } catch (error: any) {
-      return {
-        error:
-          error.message || "An error occurred while creating dashboard keys",
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i]
+      const p = projectsToFetch[i]
+
+      if (result.status === "fulfilled") {
+        dashboardKeys[result.value.projectId] = result.value.dashboardKey
+      } else {
+        errors[p.projectId] = result.reason?.message || "Unknown error"
       }
     }
+
+    return { dashboardKeys, errors }
   })

@@ -37,12 +37,12 @@ export const listProjectConfigs = createServerFn({ method: "GET" }).handler(
     const session = await auth.api.getSession({
       headers: request?.headers,
     })
-    if (!session) return { projects: [] }
+    if (!session) throw new Error("Unauthorized")
 
     const userOrg = await db.query.org.findFirst({
       where: eq(org.userId, session.user.id),
     })
-    if (!userOrg) return { projects: [] }
+    if (!userOrg) throw new Error("No org found")
 
     const projects = await db.query.project.findMany({
       where: eq(project.orgId, userOrg.orgId),
@@ -53,7 +53,7 @@ export const listProjectConfigs = createServerFn({ method: "GET" }).handler(
 
     const MASTER_API_KEY = process.env.MASTER_API_KEY
     if (!MASTER_API_KEY) {
-      return { error: "Master API Key is not set on the server" }
+      throw new Error("Master API Key is not set on the server")
     }
 
     const res = await fetch(
@@ -67,7 +67,10 @@ export const listProjectConfigs = createServerFn({ method: "GET" }).handler(
         body: JSON.stringify({ projectIds }),
       }
     )
-    if (!res.ok) return { projects: [] }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || `Backend returned ${res.status}`)
+    }
 
     const data = await res.json()
     return { projects: data.projects || [] }
