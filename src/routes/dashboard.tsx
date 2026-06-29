@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { getBackendConfig } from "@/lib/scrawn-server"
-import { clearDashboardSession } from "@/lib/server/cache"
+import { clearDashboardSession } from "@/lib/server/cacheActions"
 import {
   RefreshContext,
   useIsRefreshing,
