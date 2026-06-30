@@ -6,6 +6,8 @@ interface ProjectContextType {
   setActiveProjectId: (id: string) => void
   projects: string[]
   loading: boolean
+  error: boolean
+  refreshProjects: () => void
 }
 
 const ProjectContext = createContext<ProjectContextType>({
@@ -13,18 +15,21 @@ const ProjectContext = createContext<ProjectContextType>({
   setActiveProjectId: () => {},
   projects: [],
   loading: true,
+  error: false,
+  refreshProjects: () => {},
 })
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
   const [projects, setProjects] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  useEffect(() => {
-    let mounted = true
+  const refreshProjects = () => {
+    setLoading(true)
+    setError(false)
     listProjects()
       .then((projIds) => {
-        if (!mounted) return
         setProjects(projIds)
         setLoading(false)
         if (projIds.length > 0) {
@@ -34,17 +39,18 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {
-        if (mounted) setLoading(false)
+        setLoading(false)
+        setError(true)
       })
+  }
 
-    return () => {
-      mounted = false
-    }
+  useEffect(() => {
+    refreshProjects()
   }, [])
 
   return (
     <ProjectContext.Provider
-      value={{ activeProjectId, setActiveProjectId, projects, loading }}
+      value={{ activeProjectId, setActiveProjectId, projects, loading, error, refreshProjects }}
     >
       {children}
     </ProjectContext.Provider>

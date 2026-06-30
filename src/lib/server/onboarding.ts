@@ -71,7 +71,7 @@ export const submitOnboarding = createServerFn({ method: "POST" })
         Authorization: `Bearer ${MASTER_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...ctx.data }),
+      body: JSON.stringify({ ...ctx.data, userId }),
     })
 
     if (!res.ok) {

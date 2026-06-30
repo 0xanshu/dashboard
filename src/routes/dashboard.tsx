@@ -81,10 +81,30 @@ const navItems = [
 ]
 
 function ProjectSelector({ expanded }: { expanded: boolean }) {
-  const { activeProjectId, setActiveProjectId, projects, loading } =
+  const { activeProjectId, setActiveProjectId, projects, loading, error, refreshProjects } =
     useProject()
 
-  if (loading || projects.length === 0) return null
+  if (loading) return null
+
+  if (error) {
+    return (
+      <button
+        onClick={refreshProjects}
+        className={`group relative mb-2 flex h-10 w-full shrink-0 items-center overflow-hidden transition-all border-2 border-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-900/40`}
+      >
+        <div className="flex w-11 shrink-0 items-center justify-center">
+          <RefreshCw className="h-4 w-4 text-red-500" />
+        </div>
+        {expanded && (
+          <div className="flex-1 overflow-hidden pr-3 text-left whitespace-nowrap">
+            <span className="font-mono text-[10px] font-bold text-red-500">RETRY LOAD</span>
+          </div>
+        )}
+      </button>
+    )
+  }
+
+  if (projects.length === 0) return null
 
   return (
     <div

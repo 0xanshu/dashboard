@@ -60,7 +60,7 @@ function ProjectsPage() {
   const [dodoLiveProductId, setDodoLiveProductId] = useState("")
   const [dodoTestProductId, setDodoTestProductId] = useState("")
   const [currency, setCurrency] = useState("usd")
-  const [redirectUrl, setRedirectUrl] = useState("http://localhost:3000")
+  const [redirectUrl, setRedirectUrl] = useState("")
 
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -75,7 +75,7 @@ function ProjectsPage() {
     setDodoLiveProductId("")
     setDodoTestProductId("")
     setCurrency("usd")
-    setRedirectUrl("http://localhost:3000")
+    setRedirectUrl("")
     setError("")
     setSuccess(false)
   }
@@ -95,7 +95,7 @@ function ProjectsPage() {
     setDodoLiveProductId(proj.dodoLiveProductId || "")
     setDodoTestProductId(proj.dodoTestProductId || "")
     setCurrency(proj.currency || "usd")
-    setRedirectUrl(proj.redirectUrl || "http://localhost:3000")
+    setRedirectUrl(proj.redirectUrl || "")
     setError("")
     setSuccess(false)
   }
@@ -138,7 +138,6 @@ function ProjectsPage() {
       if (mode === "create") {
         const res = await submitOnboarding({
           data: {
-            userId: session.user.id,
             name,
             dodoLiveApiKey,
             dodoTestApiKey,

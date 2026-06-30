@@ -109,7 +109,7 @@ function Onboarding() {
   const [dodoLiveProductId, setDodoLiveProductId] = useState("")
   const [dodoTestProductId, setDodoTestProductId] = useState("")
   const [currency, setCurrency] = useState("usd")
-  const [redirectUrl, setRedirectUrl] = useState("http://localhost:3000")
+  const [redirectUrl, setRedirectUrl] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -148,7 +148,6 @@ function Onboarding() {
     setError("")
     const res = await submitOnboarding({
       data: {
-        userId,
         name,
         dodoLiveApiKey,
         dodoTestApiKey,
