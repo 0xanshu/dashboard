@@ -144,7 +144,7 @@ export const updateProject = createServerFn({ method: "POST" })
     )
 
     if (!res.ok) {
-      const err = await res.json()
+      const err = await res.json().catch(() => ({}))
       return { error: err.message || "Failed to update project" }
     }
 
@@ -187,7 +187,7 @@ export const deleteProject = createServerFn({ method: "POST" })
     )
 
     if (!res.ok) {
-      const err = await res.json()
+      const err = await res.json().catch(() => ({}))
       return {
         error:
           "Failed to delete project on backend: " +
