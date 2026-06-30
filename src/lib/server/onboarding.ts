@@ -60,22 +60,6 @@ export const submitOnboarding = createServerFn({ method: "POST" })
 
     const userId = session.user.id
 
-    let userOrg = await db.query.org.findFirst({
-      where: eq(org.userId, userId),
-    })
-
-    if (!userOrg) {
-      const newOrgId = randomUUID()
-      const [newOrg] = await db
-        .insert(org)
-        .values({
-          orgId: newOrgId,
-          userId: userId,
-        })
-        .returning()
-      userOrg = newOrg
-    }
-
     const MASTER_API_KEY = process.env.MASTER_API_KEY
     if (!MASTER_API_KEY) {
       return { error: "Master API Key is not set on the server" }
@@ -108,9 +92,27 @@ export const submitOnboarding = createServerFn({ method: "POST" })
       return { error: "The dashboard key is undefined" }
     }
 
-    await db.insert(project).values({
-      projectId: returnedProjectId,
-      orgId: userOrg.orgId,
+    await db.transaction(async (tx) => {
+      let userOrg = await tx.query.org.findFirst({
+        where: eq(org.userId, userId),
+      })
+
+      if (!userOrg) {
+        const newOrgId = randomUUID()
+        const [newOrg] = await tx
+          .insert(org)
+          .values({
+            orgId: newOrgId,
+            userId: userId,
+          })
+          .returning()
+        userOrg = newOrg
+      }
+
+      await tx.insert(project).values({
+        projectId: returnedProjectId,
+        orgId: userOrg.orgId,
+      })
     })
 
     const appSession = await useSession(sessionConfig)
