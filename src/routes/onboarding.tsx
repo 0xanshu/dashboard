@@ -141,7 +141,6 @@ function Onboarding() {
     }
   }
 
-  const userId = session.user.id
 
   async function handleFinalSubmit() {
     setLoading(true)

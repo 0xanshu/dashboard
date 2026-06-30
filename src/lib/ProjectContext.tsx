@@ -36,6 +36,8 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
           setActiveProjectId((current) =>
             current && projIds.includes(current) ? current : projIds[0]
           )
+        } else {
+          setActiveProjectId(null)
         }
       })
       .catch(() => {
@@ -50,7 +52,14 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ProjectContext.Provider
-      value={{ activeProjectId, setActiveProjectId, projects, loading, error, refreshProjects }}
+      value={{
+        activeProjectId,
+        setActiveProjectId,
+        projects,
+        loading,
+        error,
+        refreshProjects,
+      }}
     >
       {children}
     </ProjectContext.Provider>

@@ -24,7 +24,10 @@ export async function getDashboardKey(
       if (result.error) {
         throw new Error(result.error)
       }
-      return session.data.dashboard_keys?.[project_id] || null
+      if (!session.data.dashboard_keys?.[project_id]) {
+        throw new Error("creation of a new dashboard key returned null")
+      }
+      return session.data.dashboard_keys?.[project_id]
     }
   } catch (error) {
     console.error("Failed to get dashboard key session:", error)
