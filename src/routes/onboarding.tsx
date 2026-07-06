@@ -7,7 +7,6 @@ import {
   Folder,
   Globe,
   Key,
-  Lock,
   ShieldAlert,
 } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
