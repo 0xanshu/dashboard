@@ -230,12 +230,16 @@ function Onboarding() {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between font-mono text-[10px] font-black tracking-widest text-neutral-500 uppercase">
                   <span>Configuration Progress</span>
-                  <span>Step {step + 1} of 7</span>
+                  <span>
+                    Step {step + 1} of {stepDetails.length}
+                  </span>
                 </div>
                 <div className="relative h-3 w-full overflow-hidden border-2 border-black bg-neutral-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-black dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
                   <motion.div
                     className="h-full border-r-2 border-black bg-[#ff00ff] dark:border-white"
-                    animate={{ width: `${((step + 1) / 7) * 100}%` }}
+                    animate={{
+                      width: `${((step + 1) / stepDetails.length) * 100}%`,
+                    }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   />
                 </div>
