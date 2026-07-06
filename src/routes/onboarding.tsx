@@ -122,7 +122,7 @@ function Onboarding() {
 
   function handleNext(e: React.FormEvent) {
     e.preventDefault()
-    if (step < 6) {
+    if (step < stepDetails.length - 1) {
       setStep(step + 1)
     } else {
       handleFinalSubmit()
@@ -431,7 +431,7 @@ function Onboarding() {
                 >
                   {loading ? (
                     "Processing..."
-                  ) : step < 6 ? (
+                  ) : step < 4 ? (
                     <>
                       Continue <ArrowRight className="h-4 w-4" />
                     </>

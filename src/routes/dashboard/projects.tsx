@@ -43,7 +43,9 @@ function ProjectsPage() {
     loading: loadingConfigs,
     refresh,
   } = useCachedData(
-    session?.user?.id ? `project-configs:${session.user.id}` : "project-configs-loading",
+    session?.user?.id
+      ? `project-configs:${session.user.id}`
+      : "project-configs-loading",
     listProjectConfigs,
     TTL.DASHBOARD_SUMMARY
   )
