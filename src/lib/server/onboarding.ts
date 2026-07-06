@@ -42,8 +42,6 @@ export const submitOnboarding = createServerFn({ method: "POST" })
       name: string
       dodoLiveApiKey: string
       dodoTestApiKey: string
-      dodoLiveProductId?: string
-      dodoTestProductId?: string
       currency: string
       redirectUrl: string
     }>()
